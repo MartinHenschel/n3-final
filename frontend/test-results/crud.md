@@ -1,0 +1,86 @@
+# Page snapshot
+
+```yaml
+- heading "Cadastrar Usuário" [level=1]
+- textbox "Nome"
+- textbox "Email"
+- button "Cadastrar"
+- heading "Lista de Usuários" [level=2]
+- list:
+  - listitem:
+    - strong: Kryscielle Karina Rigo
+    - text: (danihenfono@gmail.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Test User
+    - text: (playwright-1752102093334@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Test User
+    - text: (playwright-1752102498396@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Test User
+    - text: (playwright-1752102845510@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Create Test
+    - text: (create-1752103212829@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Updated-1752103214514
+    - text: (updated-1752103214514@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: DeleteMe-1752103215032
+    - text: (deleteme-1752103215032@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: EditThis-1752103221515
+    - text: (editthis-1752103221515@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Create Test
+    - text: (create-1752103356490@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Updated-1752103358002
+    - text: (updated-1752103358002@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: DeleteMe-1752103358534
+    - text: (deleteme-1752103358534@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: EditThis-1752103390291
+    - text: (editthis-1752103390291@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Playwright Create Test
+    - text: (create-1752103768084@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: Updated-1752103769596
+    - text: (updated-1752103769596@example.com)
+    - button "Editar"
+    - button "Excluir"
+  - listitem:
+    - strong: DeleteMe-1752103770140
+    - text: (deleteme-1752103770140@example.com)
+    - button "Editar"
+    - button "Excluir"
+- text: ">"
+```
