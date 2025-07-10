@@ -1,0 +1,61 @@
+import http from 'k6/http';
+import { check } from 'k6';
+import { Counter } from 'k6/metrics';
+
+// Métricas customizadas
+export let apiGetRequests = new Counter('api_get_requests');
+export let apiPostRequests = new Counter('api_post_requests');
+export let apiPutRequests = new Counter('api_put_requests');
+export let apiDeleteRequests = new Counter('api_delete_requests');
+
+export default function () {
+  let res;
+
+  const headers = { 'Content-Type': 'application/json' };
+
+  // POST - Criação
+  const postPayload = JSON.stringify({ nome: 'Usuario Teste', email: 'teste@exemplo.com' });
+  res = http.post('http://localhost:4000/usuarios', postPayload, {
+    headers: headers,
+    tags: { name: 'POST_Usuario' },
+  });
+  check(res, { 'POST status is 201': (r) => r.status === 201 });
+  apiPostRequests.add(1);
+
+  // Pega o ID do usuário criado (se possível)
+  const postRes = JSON.parse(res.body);
+  const userId = postRes.id;
+
+  // Protege os testes seguintes se o POST falhar
+  if (!userId) {
+    console.error('❌ ID do usuário não retornado. Verifique se a API está criando corretamente.');
+    return;
+  }
+
+  // GET all
+  res = http.get('http://localhost:4000/usuarios');
+  check(res, { 'GET ALL status is 200': (r) => r.status === 200 });
+  apiGetRequests.add(1);
+
+  // GET by ID
+  res = http.get(`http://localhost:4000/usuarios/${userId}`);
+  check(res, { 'GET BY ID status is 200': (r) => r.status === 200 });
+  apiGetRequests.add(1);
+
+  // PUT
+  const putPayload = JSON.stringify({ nome: 'Usuario Atualizado', email: 'atualizado@exemplo.com' });
+  res = http.put(`http://localhost:4000/usuarios/${userId}`, putPayload, {
+    headers: headers,
+    tags: { name: 'PUT_Usuario' },
+  });
+  check(res, { 'PUT status is 200': (r) => r.status === 200 });
+  apiPutRequests.add(1);
+
+  // DELETE
+  res = http.del(`http://localhost:4000/usuarios/${userId}`, null, {
+    headers: headers,
+    tags: { name: 'DELETE_Usuario' },
+  });
+  check(res, { 'DELETE status is 204': (r) => r.status === 204 });
+  apiDeleteRequests.add(1);
+}
