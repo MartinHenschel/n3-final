@@ -1,5 +1,3 @@
-Markdown
-
 # Projeto N3 - Sistema de Cadastro de Usuários com API REST e Testes
 
 Este projeto demonstra um sistema de cadastro de usuários completo, desenvolvido como parte da disciplina N3. Ele integra:
@@ -7,7 +5,7 @@ Este projeto demonstra um sistema de cadastro de usuários completo, desenvolvid
 * Uma API RESTful (Backend) para operações de Criação, Leitura, Atualização e Exclusão (CRUD) de usuários.
 * Um Front-end simples, mas funcional, que interage com a API para realizar essas operações CRUD.
 * Testes funcionais (End-to-End - E2E) automatizados utilizando Playwright para validar a interação do front-end com a API.
-* (Opcional, mas recomendado se você implementou) Testes de carga com K6 e um dashboard de monitoramento no Grafana para visualizar o desempenho da API.
+* **Testes de carga com K6 para simular uso da API e um dashboard de monitoramento no Grafana/Prometheus para visualizar o desempenho.**
 
 ---
 
@@ -15,9 +13,9 @@ Este projeto demonstra um sistema de cadastro de usuários completo, desenvolvid
 
 1.  **API REST:** Contém endpoints para GET (todos e por ID), POST, PUT e DELETE de usuários.
 2.  **Front-end:** Interface de usuário para interagir com a API, permitindo cadastrar, listar, editar e excluir usuários.
-3.  **Testes de Carga (K6):** Scripts para simular carga na API (se implementado).
-4.  **Dashboard Grafana:** Painel para monitorar as métricas dos testes de carga (se implementado com K6/Prometheus).
-5.  **Testes Funcionais (Playwright):** Testes automatizados que validam as operações CRUD através da interface do front-end.
+3.  **Testes de Carga (K6):** Scripts para simular carga nas quatro operações da API (GET, POST, PUT, DELETE).
+4.  **Dashboard Grafana:** Painel para monitorar as métricas dos testes de carga via Prometheus.
+5.  **Testes Funcionais (Playwright):** Testes automatizados que validam as quatro operações CRUD através da interface do front-end.
 
 ---
 
@@ -28,12 +26,13 @@ api emanuel/
 │   ├── server.js             # Código da API Node.js/Express
 │   ├── package.json          # Dependências do Backend
 │   └── package-lock.json     # Versões exatas das dependências do Backend
-├── frontend/
-│   ├── index.html            # Código HTML, CSS e JavaScript do Front-end
-│   ├── crud.spec.js          # Arquivo com os testes Playwright
-│   ├── playwright.config.js  # Configuração do Playwright
-│   ├── package.json          # Dependências do Front-end (Playwright, Serve)
-│   ├── package-lock.json     # Versões exatas das dependências do Front-end
+└── frontend/
+├── index.html            # Código HTML, CSS e JavaScript do Front-end
+├── crud.spec.js          # Arquivo com os testes Playwright
+├── playwright.config.js  # Configuração do Playwright
+├── package.json          # Dependências do Front-end (Playwright, Serve)
+├── package-lock.json     # Versões exatas das dependências do Front-end
+├── load-test.js          # Script de teste de carga com K6
 └── README.md                 # Este arquivo de instruções
 
 
@@ -88,25 +87,72 @@ Os testes serão executados nos navegadores configurados (padrão é Chromium) e
 
 Após a conclusão, um relatório HTML detalhado será gerado na pasta frontend/playwright-report/. Você pode abri-lo navegando até essa pasta e abrindo o arquivo index.html em seu navegador.
 
-5. Configuração e Execução de Testes de Carga (K6 & Grafana/Prometheus) - Opcional:
-Se você implementou testes de carga com K6 e monitoramento com Grafana/Prometheus:
+5. Configuração e Execução de Testes de Carga (K6 & Grafana/Prometheus):
+Para rodar os testes de carga e monitorar as métricas, você precisará do K6 e de uma instância de Prometheus e Grafana. Recomenda-se usar Docker para isso.
 
-Instalação K6: Se ainda não o fez, instale o K6 (consulte a documentação oficial do K6 para o seu sistema operacional, ou use Docker).
+Instalação do K6: Baixe e instale o K6 de k6.io ou use Docker.
 
-Rodar Prometheus e Grafana: Se estiver usando Docker, na raiz do projeto, execute:
+Docker (Prometheus e Grafana): Certifique-se de ter o Docker Desktop instalado.
+Na raiz do seu projeto, crie um arquivo docker-compose.yml com o seguinte conteúdo:
+
+YAML
+
+version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Certifique-se que este arquivo exista na raiz
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+E também na raiz do seu projeto, crie um arquivo prometheus.yml com este conteúdo:
+
+YAML
+
+global:
+  scrape_interval: 5s # Set the scrape interval to every 5 seconds. Default is 1m.
+
+scrape_configs:
+  - job_name: 'k6'
+    static_configs:
+      - targets: ['host.docker.internal:6565'] # Para Docker no Windows/Mac. Use '172.17.0.1:6565' para Linux
+Importante: Se você estiver usando Linux nativamente (não WSL) para Docker, mude host.docker.internal para 172.17.0.1 no prometheus.yml.
+
+Para iniciar Prometheus e Grafana, na raiz do seu projeto, execute:
 
 Bash
 
 docker-compose up -d
-(Certifique-se de ter um docker-compose.yml configurado para Prometheus e Grafana, e o prometheus.yml apontando para o K6).
-
-Executar Teste K6: Abra um terminal, navegue até a pasta onde seu script K6 está (ex: frontend/) e execute:
+Executar Teste K6: Abra um quarto terminal (novo), navegue até a pasta frontend e execute:
 
 Bash
 
 cd frontend
-k6 run seu_script_de_carga.js # Substitua pelo nome do seu arquivo .js do K6
-Acessar Grafana: Abra seu navegador e vá para http://localhost:3000 (usuário admin, senha admin - se padrão).
+k6 run --out prometheus.remote_write=[http://host.docker.internal:9090/api/v1/write](http://host.docker.internal:9090/api/v1/write) load-test.js
+Atenção: Se você estiver usando Linux nativamente (não WSL), mude host.docker.internal para 172.17.0.1.
+
+Este comando executa o script K6 e envia as métricas para o Prometheus.
+
+Acessar Grafana: Abra seu navegador e vá para http://localhost:3000.
+
+Faça login com admin / admin.
+
+Adicione o Prometheus como uma fonte de dados (Configuration -> Data sources -> Add data source -> Prometheus. URL: http://prometheus:9090).
+
+Importe um dashboard K6 (pode usar o ID 15783 ou 15784 da galeria de dashboards do Grafana, ou criar o seu próprio usando as métricas api_get_requests, api_post_requests, etc.).
 
  Professor Emanuel
 Gostaria de informar sobre a atividade envolvendo o Grafana. Dediquei mais de uma semana tentando implementar a ferramenta, investindo tempo significativo em tutoriais, documentação oficial e fóruns de discussão. Meu objetivo era [ex: conectar o Grafana a uma fonte de dados específica como Prometheus/InfluxDB/MySQL/PostgreSQL, ou criar um dashboard com métricas XYZ].
